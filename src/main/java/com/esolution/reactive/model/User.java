@@ -26,13 +26,14 @@ public class User {
 	private Location location;
 	
 	public User() {
+//		this.locationId = location != null ? location.getId() : null;
 	}
 	
 	private User(Builder builder) {
 		this.firstName = builder.firstName;
 		this.lastName = builder.lastName;
 		this.location = builder.location;
-		this.locationId = builder.locationId;
+		this.locationId = location != null ? location.getId() : null; // builder.locationId;
 	}
 
 	public String getFirstName() {

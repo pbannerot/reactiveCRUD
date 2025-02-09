@@ -21,31 +21,43 @@ public class UserService {
 	@Autowired
     private LocationRepository locationRepository;
 
-    public Flux<User> getAllUsers() {
-        return userRepository.findAll()
-                .flatMap(user ->
-                    locationRepository.findById(user.getLocationId())
-                            .doOnNext(user::setLocation)
-                            .thenReturn(user)
-                );
-    }
+	public Flux<User> getAllUsers() {
+	    return userRepository.findAll()
+	            .flatMap(user -> {
+	                if (user.getLocationId() != null) {
+	                    return locationRepository.findById(user.getLocationId())
+	                            .doOnNext(user::setLocation)
+	                            .thenReturn(user);
+	                } else {
+	                    return Mono.just(user);
+	                }
+	            });
+	}
 
-    public Mono<User> getUserById(UUID id) {
-        return userRepository.findById(id)
-                .flatMap(user ->
-                    locationRepository.findById(user.getLocationId())
-                            .doOnNext(user::setLocation)
-                            .thenReturn(user)
-                );
-    }
+	public Mono<User> getUserById(UUID id) {
+	    return userRepository.findById(id)
+	            .flatMap(user -> {
+	                if (user.getLocationId() != null) {
+	                    return locationRepository.findById(user.getLocationId())
+	                            .doOnNext(user::setLocation)
+	                            .thenReturn(user);
+	                } else {
+	                    return Mono.just(user);
+	                }
+	            });
+	}
 
     public Mono<User> saveUser(User user) {
         return userRepository.save(user)
-                .flatMap(savedUser ->
-                    locationRepository.findById(savedUser.getLocationId())
-                            .doOnNext(savedUser::setLocation)
-                            .thenReturn(savedUser)
-                );
+                .flatMap(savedUser -> {
+                    if (savedUser.getLocationId() != null) {
+                        return locationRepository.findById(savedUser.getLocationId())
+                                .doOnNext(savedUser::setLocation)
+                                .thenReturn(savedUser);
+                    } else {
+                        return Mono.just(savedUser);
+                    }
+                });
     }
 
     public Mono<User> updateUser(UUID id, User updatedUser) {
@@ -55,11 +67,15 @@ public class UserService {
                     existingUser.setLastName(updatedUser.getLastName());
                     existingUser.setLocationId(updatedUser.getLocationId());
                     return userRepository.save(existingUser)
-                            .flatMap(savedUser ->
-                                locationRepository.findById(savedUser.getLocationId())
-                                        .doOnNext(savedUser::setLocation)
-                                        .thenReturn(savedUser)
-                            );
+                            .flatMap(savedUser -> {
+                                if (savedUser.getLocationId() != null) {
+                                    return locationRepository.findById(savedUser.getLocationId())
+                                            .doOnNext(savedUser::setLocation)
+                                            .thenReturn(savedUser);
+                                } else {
+                                    return Mono.just(savedUser);
+                                }
+                            });
                 });
     }
     
