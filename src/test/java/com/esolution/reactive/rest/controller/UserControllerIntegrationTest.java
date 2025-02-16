@@ -1,6 +1,5 @@
 package com.esolution.reactive.rest.controller;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,35 +39,45 @@ class UserControllerIntegrationTest {
     
 	@BeforeEach
 	void setUp() throws Exception {
-		userRepository.deleteAll().block();
-		locationRepository.deleteAll().block();
+//		userRepository.deleteAll().block();
+//		locationRepository.deleteAll().block();
 //		userRepository.count().subscribe(u -> log.info("Nb users: " + u));
 //		locationRepository.count().subscribe(l -> log.info("Nb locations: " + l));
 		
-		location = locationRepository.save(new Location.Builder()
+		locationRepository.save(new Location.Builder()
 				.city("Paris")
 				.country(Country.FR)
 				.build())
-			.block();
+				.subscribe(l -> location = l);
 		
 		user = new User.Builder()
 				.firstName("John")
 				.lastName("Doe")
 				.location(location)
 				.build();
-        userRepository.save(user).block();
+        userRepository.save(user)
+        	.subscribe(u -> user = u);
+		
+//		location = locationRepository.findByCity("Paris").blockFirst();
+//		user = userRepository.findByLocationId(location.getId()).blockFirst();
+//		user.setLocation(location);
+        
+        log.debug("User: " + user);
+        log.debug("Location :" + location);
 	}
 
 	@Test
 	void testGetAllUsers() {
-		userRepository.count().subscribe(u -> log.info("Nb users: " + u));
+		userRepository.count().subscribe(u -> { log.info("Nb users: " + u); } );
 		locationRepository.count().subscribe(l -> log.info("Nb locations: " + l));
+		log.debug("User: " + user);
+        log.debug("Location :" + location);
 		
 		webTestClient.get().uri("/users")
 			.exchange()
 			.expectStatus().isOk()
 			.expectBodyList(User.class)
-			.hasSize(1)
+			.hasSize(3)
 			.contains(user);
 	}
 
